@@ -2,8 +2,8 @@
 <MenuItems>
     <SupportURL>http://forums.indigodomo.com/viewforum.php?f=214</SupportURL>
     <MenuItem id="getDevices">
-        <Name>Update Device Status</Name>
-        <CallbackMethod>getDevices</CallbackMethod>
+        <Name>Update FireBoard Device Data</Name>
+        <CallbackMethod>getDeviceData</CallbackMethod>
     </MenuItem>
     <MenuItem id="menu3">
         <Name>Write Fireboard Data to Log</Name>

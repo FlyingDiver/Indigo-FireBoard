@@ -34,20 +34,21 @@ class Plugin(indigo.PluginBase):
     def startup(self):
         indigo.server.log(u"Starting FireBoard")
 
-        self.needsUpdate = True
+        # data returned from devices.json API call, converted to dict keyed by the address (hardware_id) field
         self.device_info = {}
 
-        self.fbDevices = {}
-        self.fbChannels = {}
-        self.triggers = { }
+        self.fbDevices = {}     # Indigo device IDs, keyed by address (hardware_id)
+        self.fbChannels = {}    # Indigo device IDs, keyed by uuid-channel string
         self.knownDevices = {}
         
-        self.statusFrequency = float(self.pluginPrefs.get('statusFrequency', "10")) * 60.0
-        self.logger.debug(u"statusFrequency = {}".format(self.statusFrequency))
-        self.next_status_check = time.time()
+        self.updateFrequency = float(self.pluginPrefs.get('updateFrequency', "1")) * 60.0
+        self.logger.debug(u"updateFrequency = {}".format(self.updateFrequency))
+        self.next_update = time.time()
 
         if not self.fbLogin(username=self.pluginPrefs['FireBoardLogin'], password=self.pluginPrefs['FireBoardPassword']):
             indigo.server.error(u"FireBoard Login Failure")
+        else:
+            self.getDeviceData()
 
     def shutdown(self):
         indigo.server.log(u"Shutting down FireBoard")
@@ -58,10 +59,9 @@ class Plugin(indigo.PluginBase):
         try:
             while True:
 
-                if self.needsUpdate or (time.time() > self.next_status_check):
-                    self.getDevices()
-                    self.next_status_check = time.time() + self.statusFrequency
-                    self.needsUpdate = False
+                if time.time() > self.next_update:
+                    self.getTemperatures()
+                    self.next_update = time.time() + self.updateFrequency
 
                 self.sleep(1.0)
 
@@ -87,14 +87,14 @@ class Plugin(indigo.PluginBase):
             assert device.address not in self.fbDevices
             self.fbDevices[device.address] = device.id
             self.logger.threaddebug(u"fbDevices = {}".format(self.fbDevices))
-            self.needsUpdate = True
+            
         elif device.deviceTypeId == 'fireboardChannel':
             self.logger.debug(u"{}: deviceStartComm: Adding device ({}) to Channel list".format(device.name, device.id))
-            assert device.address not in self.fbChannels
-            self.fbChannels[device.address] = device.id
+            key = "{}-{}".format(device.pluginProps['uuid'], device.pluginProps['channel'])
+            assert key not in self.fbChannels
+            self.fbChannels[key] = device.id
             self.logger.threaddebug(u"fbChannels = {}".format(self.fbChannels))
-            self.needsUpdate = True
-            
+            self.getTemperatures()
         
     def deviceStopComm(self, device):
 
@@ -104,30 +104,10 @@ class Plugin(indigo.PluginBase):
             del self.fbDevices[device.address]
         elif device.deviceTypeId == 'fireboardChannel':
             self.logger.debug(u"{}: deviceStopComm: Removing device ({}) from Channel list".format(device.name, device.id))
-            assert device.address in self.fbChannels
-            del self.fbChannels[device.address]
-
-
-    ########################################
-    # Event Methods
-    ########################################
-
-    def triggerStartProcessing(self, trigger):
-        self.logger.debug(u"Adding Trigger {} ({}) - {}".format(trigger.name, trigger.id, trigger.pluginTypeId))
-        assert trigger.id not in self.triggers
-        self.triggers[trigger.id] = trigger
-
-    def triggerStopProcessing(self, trigger):
-        self.logger.debug(u"Removing Trigger {} ({})".format(trigger.name, trigger.id))
-        assert trigger.id in self.triggers
-        del self.triggers[trigger.id]
-
-    def triggerCheck(self, device):
-        for triggerId, trigger in sorted(self.triggers.iteritems()):
-            self.logger.debug(u"Checking Trigger {} ({}), Type: {}".format(trigger.name, trigger.id, trigger.pluginTypeId))
-
-#                indigo.trigger.execute(trigger) 
-
+            key = "{}-{}".format(device.pluginProps['uuid'], device.pluginProps['channel'])
+            assert key in self.fbChannels
+            del self.fbChannels[key]
+            
 
     ########################################
     # Menu Methods
@@ -159,9 +139,9 @@ class Plugin(indigo.PluginBase):
         if len(valuesDict['FireBoardPassword']) < 1:
             errorDict['FireBoardPassword'] = u"Enter your FireBoard login password"
 
-        statusFrequency = int(valuesDict['statusFrequency'])
-        if (statusFrequency < 5) or (statusFrequency > (24 * 60)):
-            errorDict['statusFrequency'] = u"Status frequency must be at least 5 min and no more than 24 hours"
+        updateFrequency = int(valuesDict['updateFrequency'])
+        if (updateFrequency < 5) or (updateFrequency > (24 * 60)):
+            errorDict['updateFrequency'] = u"Status frequency must be at least 5 min and no more than 24 hours"
 
         if len(errorDict) > 0:
             return (False, valuesDict, errorDict)
@@ -183,11 +163,11 @@ class Plugin(indigo.PluginBase):
             self.indigo_log_handler.setLevel(self.logLevel)
             self.logger.debug(u"logLevel = " + str(self.logLevel))
 
-            self.statusFrequency = float(self.pluginPrefs.get('statusFrequency', "10")) * 60.0
-            self.logger.debug(u"statusFrequency = {}".format(self.statusFrequency))
-            self.next_status_check = time.time() + self.statusFrequency
+            self.updateFrequency = float(self.pluginPrefs.get('updateFrequency', "10")) * 60.0
+            self.logger.debug(u"updateFrequency = {}".format(self.updateFrequency))
+            self.next_update = time.time() + self.updateFrequency
 
-            self.getDevices()
+            self.getDeviceData()
 
 
     def availableDeviceList(self, filter="", valuesDict=None, typeId="", targetId=0):
@@ -246,9 +226,10 @@ class Plugin(indigo.PluginBase):
         
         # Now create the probe channels
         
-        props = { "SupportsOnState": False, "SupportsSensorValue": True, "SupportsStatusRequest": False}
+        props = { "SupportsOnState": False, "SupportsSensorValue": True, "SupportsStatusRequest": False, "uuid": fbDevice['uuid']}
 
         for channel in fbDevice['channels']:
+            props['channel'] = channel['channel']
             newdev = indigo.device.create(indigo.kProtocol.Plugin, address=channel['id'], name=channel['channel_label'], props=props, deviceTypeId="fireboardChannel")
             newdev.model = "FireBoard"
             newdev.subModel = "Channel"
@@ -261,66 +242,61 @@ class Plugin(indigo.PluginBase):
     def fbLogin(self, username=None, password=None):
 
         if username == None or password == None:
-            self.logger.debug(u"fbLogin failure, Username or Password not set")
+            self.logger.error(u"fbLogin failure, Username or Password not set")
+            self.loginKey = None
             return False
 
-        headers = {
-                'Content-Type':     'application/json'
-        }
-        payload = {
-                'username': username, 
-                'password': password
-        }
-
+        headers = { 'Content-Type': 'application/json' }
+        payload = { 'username': username, 'password': password}
         try:
             response = requests.post(API_LOGIN, json=payload, headers=headers)
             self.logger.debug(u"fbLogin response = {}".format(response.text))
             
         except requests.exceptions.RequestException as err:
-            self.logger.debug(u"fbLogin failure, request url: {}, RequestException: {}".format(url, err))
-            self.loginKey = ""
-            return False
+            self.logger.error(u"fbLogin failure, request url: {}, RequestException: {}".format(url, err))
+            self.loginKey = None
+            return
 
         if (response.status_code != requests.codes.ok):
-            self.logger.debug(u"fbLogin failure, status_code = {}".format(response.status_code))
-            self.loginKey = ""
+            self.logger.error(u"fbLogin failure, status_code = {}".format(response.status_code))
+            self.loginKey = None
             return False        
 
         try:
             self.loginKey = response.json()['key']
+            return True
         except:
-            self.logger.debug(u"fbLogin failure, json decode failure")
+            self.logger.error(u"fbLogin failure, json decode failure")
+            self.loginKey = None
             return False
-        return True
 
     ########################################
 
-    def getDevices(self):
+    def getDeviceData(self):
+    
+        if not self.loginKey:
+            return
 
         url = "{}/{}".format(API_BASE, 'devices.json')
-        headers = {
-                "Content-Type":     "application/json",
-                'Authorization':    "Token " + self.loginKey
-        }
+        headers = { "Content-Type": "application/json", 'Authorization': "Token " + self.loginKey }
         try:
             response = requests.get(url, headers=headers)
         except requests.exceptions.RequestException as err:
             self.logger.error(u"getDevices: RequestException: " + str(err))
             return False
         
+        # save the device data, converting from array of fireboard device dicts to a dict keyed on the fireboard hardware_id (Indigo address)
         for fb in response.json():
             self.device_info[fb['hardware_id']] = fb
-            
         self.logger.debug(u"getDevices: {} Devices".format(len(self.device_info)))
         self.logger.threaddebug(u"getDevices device_info = {}".format(self.device_info))
 
+        # Update the Indigo devices
+        
         for fbID, fbDevice in self.device_info.iteritems():
-
-            fbName = fbDevice['title']
-            self.logger.debug(u"getDevices: name = {}, hardware_id = {}".format(fbName, fbID))
             
             if not fbID in self.knownDevices:
-                self.knownDevices[fbID] = fbName
+                self.knownDevices[fbID] = fbDevice['title']
 
             if fbID in self.fbDevices:
                 dev = indigo.devices[self.fbDevices[fbID]]
@@ -349,22 +325,39 @@ class Plugin(indigo.PluginBase):
             
                 for channel in fbDevice['channels']:
                     self.logger.threaddebug(u"getDevices: channel = {}".format(channel))
-                    channelID = str(channel['id'])
-                    if channelID in self.fbChannels:
-                        dev = indigo.devices[self.fbChannels[channelID]]
+                    key = "{}-{}".format(fbDevice['uuid'], channel['channel'])
+                    if key in self.fbChannels:
+                        dev = indigo.devices[self.fbChannels[key]]
                         states_list = []
-                        temp = channel.get('current_temp', None)
-                        if not temp:
-                            temp = 0.0
-                        states_list.append({'key': 'sensorValue',   'value': temp, 'uiValue': "{:1}°".format(temp)})
                         states_list.append({'key': 'id',            'value': channel['id']})
                         states_list.append({'key': 'channel',       'value': channel['channel']})
                         states_list.append({'key': 'channel_label', 'value': channel['channel_label']})
                         states_list.append({'key': 'created',       'value': channel['created']})
                         states_list.append({'key': 'enabled',       'value': channel['enabled']})
                         dev.updateStatesOnServer(states_list)
-                    
-                    
-                self.triggerCheck(dev)
 
     ########################################
+
+    def getTemperatures(self):
+
+        if not self.loginKey:
+            return
+
+        for fbID in self.fbDevices:
+        
+            fbDevice = self.device_info[fbID]
+
+            url = "{}/devices/{}/temps.json".format(API_BASE, fbDevice['uuid'])
+            headers = { "Content-Type": "application/json", 'Authorization': "Token " + self.loginKey }
+            try:
+                response = requests.get(url, headers=headers)
+            except requests.exceptions.RequestException as err:
+                self.logger.error(u"getTemperatures: RequestException: " + str(err))
+            else:
+                self.logger.debug(u"getTemperatures for {}".format(fbDevice['uuid']))
+                for probe in response.json():
+                    self.logger.debug(u"getTemperatures: {}".format(probe))
+                    key = "{}-{}".format(fbDevice['uuid'], probe['channel'])
+                    device = indigo.devices[self.fbChannels[key]]
+                    device.updateStateOnServer(key='sensorValue', value=probe[u'temp'])
+       
