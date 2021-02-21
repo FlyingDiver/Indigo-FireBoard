@@ -129,3 +129,5 @@ dmypy.json
 .pyre/
 /API Data.json
 /API Samples.json
+
+.DS_Store

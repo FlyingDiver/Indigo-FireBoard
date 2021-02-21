@@ -1,35 +1,20 @@
 <?xml version="1.0"?>
 <Devices>
-	<DeviceFactory>
-		<Name>Create FireBoard Setup</Name>
-		<ButtonTitle>Close</ButtonTitle>
-		<ConfigUI>
-            <Field id="address" type="menu">
-                <Label>FireBoard Device:</Label>
-                <List class="self" filter="" method="availableDeviceList"/>
-            </Field>            
-		</ConfigUI>
-	</DeviceFactory>
-     <Device type="custom" id="fireboard">
-        <Name>FireBoard</Name>
+    <Device type="custom" id="fireboardDevice">
+        <Name>FireBoard Device</Name>
         <ConfigUI>
             <Field id="SupportsBatteryLevel" type="checkbox" defaultValue="true" hidden="true"/>
+            <Field id="address" type="menu">
+                <Label>Device:</Label>
+                <List class="self" method="get_device_list" dynamicReload="true"/>
+                <CallbackMethod>menuChanged</CallbackMethod>
+            </Field>
         </ConfigUI>
         <States>
-            <State id="status">
+            <State id="name">
                 <ValueType>String</ValueType>
-                <TriggerLabel>Status</TriggerLabel>
-                <ControlPageLabel>Status</ControlPageLabel>
-            </State>
-            <State id="uuid">
-                <ValueType>String</ValueType>
-                <TriggerLabel>UUID</TriggerLabel>
-                <ControlPageLabel>UUID</ControlPageLabel>
-            </State>
-            <State id="title">
-                <ValueType>String</ValueType>
-                <TriggerLabel>Title</TriggerLabel>
-                <ControlPageLabel>Title</ControlPageLabel>
+                <TriggerLabel>Name</TriggerLabel>
+                <ControlPageLabel>Name</ControlPageLabel>
             </State>
             <State id="model">
                 <ValueType>String</ValueType>
@@ -61,11 +46,6 @@
                 <TriggerLabel>Probe Config</TriggerLabel>
                 <ControlPageLabel>Probe Config</ControlPageLabel>
             </State>
-            <State id="id">
-                <ValueType>String</ValueType>
-                <TriggerLabel>ID</TriggerLabel>
-                <ControlPageLabel>ID</ControlPageLabel>
-            </State>
             <State id="hardware_id">
                 <ValueType>String</ValueType>
                 <TriggerLabel>Hardware ID</TriggerLabel>
@@ -92,14 +72,25 @@
                 <ControlPageLabel>FBU Version</ControlPageLabel>
             </State>
         </States>
-        <UiDisplayStateId>status</UiDisplayStateId>
     </Device>
     
     <Device type="sensor" id="fireboardChannel">
         <Name>FireBoard Channel</Name>
+        <ConfigUI>
+            <Field id="device" type="menu">
+                <Label>Device:</Label>
+                <List class="self" method="get_device_list" dynamicReload="true"/>
+                <CallbackMethod>menuChanged</CallbackMethod>
+            </Field>
+            <Field id="address" type="menu">
+                <Label>Channel:</Label>
+                <List class="self" method="get_channel_list" dynamicReload="true"/>
+                <CallbackMethod>menuChanged</CallbackMethod>
+            </Field>
+        </ConfigUI>
         <States>
             <State id="id">
-                <ValueType>String</ValueType>
+                <ValueType>Number</ValueType>
                 <TriggerLabel>Channel ID</TriggerLabel>
                 <ControlPageLabel>Channel ID</ControlPageLabel>
             </State>
@@ -119,7 +110,7 @@
                 <ControlPageLabel>Created</ControlPageLabel>
             </State>
             <State id="enabled">
-                <ValueType>String</ValueType>
+                <ValueType>Boolean</ValueType>
                 <TriggerLabel>Enabled</TriggerLabel>
                 <ControlPageLabel>Enabled</ControlPageLabel>
             </State>
