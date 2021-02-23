@@ -16,9 +16,7 @@ class FireBoard(object):
     def __init__(self, username=None, password=None):
         self.logger = logging.getLogger("Plugin.FireBoard")   
         self.auth_headers = None      
-        
-        self.logger.debug(u"FireBoard __init__ username = {}, password = {}".format(username, password))
-        
+                
         if username == None or password == None:
             self.logger.error(u"fbLogin failure, Username or Password not set")
             self.loginKey = None
@@ -50,9 +48,7 @@ class FireBoard(object):
     # Commands to FireBoard cloud
     ########################################
     
-    def get_devices(self):
-        self.logger.debug(u"get_devices()")
-            
+    def get_devices(self):            
         url = "{}/{}".format(API_BASE, 'devices.json')
         try:
             resp = requests.get(url, headers=self.auth_headers)
@@ -63,9 +59,7 @@ class FireBoard(object):
         return resp.json()
 
 
-    def get_device(self, device_id):
-        self.logger.debug(u"get_device({})".format(device_id))
-        
+    def get_device(self, device_id):        
         url = "{}/{}".format(API_BASE, 'devices/{}.json'.format(device_id))
         try:
             resp = requests.get(url, headers=self.token_header)
@@ -76,9 +70,7 @@ class FireBoard(object):
         return resp.json()
 
 
-    def get_device_temps(self, device_id):
-        self.logger.debug(u"get_device_temps({})".format(device_id))
-        
+    def get_device_temps(self, device_id):        
         url = "{}/{}".format(API_BASE, 'devices/{}/temps.json'.format(device_id))
         try:
             resp = requests.get(url, headers=self.token_header)
@@ -89,9 +81,7 @@ class FireBoard(object):
         return resp.json()
 
 
-    def get_device_drivelog(self, device_id):
-        self.logger.debug(u"get_device_drivelog({})".format(device_id))
-        
+    def get_device_drivelog(self, device_id):        
         url = "{}/{}".format(API_BASE, 'devices/{}/drivelog.json'.format(device_id))
         try:
             resp = requests.get(url, headers=self.token_header)
@@ -102,9 +92,7 @@ class FireBoard(object):
         return resp.json()
 
 
-    def get_sessions(self):
-        self.logger.debug(u"get_sessions()")
-            
+    def get_sessions(self):            
         url = "{}/{}".format(API_BASE, 'sessions.json')
         try:
             resp = requests.get(url, headers=self.auth_headers)
@@ -115,9 +103,7 @@ class FireBoard(object):
         return resp.json()
 
 
-    def get_session(self, session_id):
-        self.logger.debug(u"get_session({})".format(session_id))
-            
+    def get_session(self, session_id):            
         url = "{}/{}".format(API_BASE, 'sessions/{}.json'.format(session_id))
         try:
             resp = requests.get(url, headers=self.auth_headers)
@@ -128,9 +114,7 @@ class FireBoard(object):
         return resp.json()
 
 
-    def get_session_chart(self, session_id):
-        self.logger.debug(u"get_session({})".format(session_id))
-            
+    def get_session_chart(self, session_id):            
         url = "{}/{}".format(API_BASE, 'sessions/{}/chart.json'.format(session_id))
         try:
             resp = requests.get(url, headers=self.auth_headers)

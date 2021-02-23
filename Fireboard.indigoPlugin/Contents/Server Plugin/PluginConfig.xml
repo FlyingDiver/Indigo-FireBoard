@@ -8,11 +8,8 @@
         <Label>FireBoard Password:</Label>
     </Field>
     <Field id="sep1" type="separator"/>
-    <Field id="statusFrequency" type="textfield" defaultValue="10">
+    <Field id="statusFrequency" type="textfield" defaultValue="1">
         <Label>Update device status frequency (minutes):</Label>
-    </Field>
-    <Field id="statusNote" type="label" fontSize="small" fontColor="darkgray">
-        <Label>Minimum update interval is 5 minutes.  Maximum is 1440 (24 hours).  Default is 10.</Label>
     </Field>
     <Field id="sep2" type="separator"/>
     <Field id="logLevel" type="menu" defaultValue="20">

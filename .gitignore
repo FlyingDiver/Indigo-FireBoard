@@ -131,3 +131,5 @@ dmypy.json
 /API Samples.json
 
 .DS_Store
+
+Fireboard.indigoPlugin.bbprojectd/

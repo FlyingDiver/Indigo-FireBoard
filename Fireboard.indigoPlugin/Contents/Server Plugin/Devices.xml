@@ -3,6 +3,8 @@
     <Device type="custom" id="fireboardDevice">
         <Name>FireBoard Device</Name>
         <ConfigUI>
+			<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden="true" />
+			<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden="true" />
             <Field id="SupportsBatteryLevel" type="checkbox" defaultValue="true" hidden="true"/>
             <Field id="address" type="menu">
                 <Label>Device:</Label>
@@ -71,12 +73,34 @@
                 <TriggerLabel>FBU Version</TriggerLabel>
                 <ControlPageLabel>FBU Version</ControlPageLabel>
             </State>
+            <State id="drive_type">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Drive Type</TriggerLabel>
+                <ControlPageLabel>Drive Type</ControlPageLabel>
+            </State>
+            <State id="drive_set">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Drive Setpoint</TriggerLabel>
+                <ControlPageLabel>Drive Setpoint</ControlPageLabel>
+            </State>
+            <State id="drive_per">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Drive Percent</TriggerLabel>
+                <ControlPageLabel>Drive Percent</ControlPageLabel>
+            </State>
+            <State id="drive_mode">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Drive Mode</TriggerLabel>
+                <ControlPageLabel>Drive Mode</ControlPageLabel>
+            </State>
         </States>
     </Device>
     
     <Device type="sensor" id="fireboardChannel">
         <Name>FireBoard Channel</Name>
         <ConfigUI>
+			<Field id="SupportsOnState" type="checkbox" defaultValue="false" hidden="true" />
+			<Field id="SupportsSensorValue" type="checkbox" defaultValue="true" hidden="true" />
             <Field id="device" type="menu">
                 <Label>Device:</Label>
                 <List class="self" method="get_device_list" dynamicReload="true"/>
