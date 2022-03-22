@@ -133,3 +133,9 @@ dmypy.json
 .DS_Store
 
 Fireboard.indigoPlugin.bbprojectd/
+
+Fireboard.indigoPlugin.zip
+
+.github/
+
+Fireboard.indigoPlugin/.idea/
