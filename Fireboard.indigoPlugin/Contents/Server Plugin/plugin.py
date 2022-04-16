@@ -133,7 +133,7 @@ class Plugin(indigo.PluginBase):
         errorMsgDict = indigo.Dict()
 
         if not valuesDict.get('device', None) and len(self.knownDevices):
-            valuesDict['device'] = self.knownDevices.keys()[0]
+            valuesDict['device'] = list(self.knownDevices.keys())[0]
             self.logger.debug(u"getDeviceConfigUiValues, valuesDict = {}".format(valuesDict))
 
         return valuesDict, errorMsgDict

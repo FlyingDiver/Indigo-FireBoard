@@ -5,6 +5,7 @@
         <ConfigUI>
 			<Field id="SupportsOnState" type="checkbox" defaultValue="true" hidden="true" />
 			<Field id="SupportsSensorValue" type="checkbox" defaultValue="false" hidden="true" />
+            <Field id="SupportsStatusRequest" type="checkbox"  defaultValue="false" hidden="true"/>
             <Field id="SupportsBatteryLevel" type="checkbox" defaultValue="true" hidden="true"/>
             <Field id="address" type="menu">
                 <Label>Device:</Label>
@@ -100,6 +101,7 @@
         <Name>FireBoard Channel</Name>
         <ConfigUI>
 			<Field id="SupportsOnState" type="checkbox" defaultValue="false" hidden="true" />
+            <Field id="SupportsStatusRequest" type="checkbox"  defaultValue="false" hidden="true"/>
 			<Field id="SupportsSensorValue" type="checkbox" defaultValue="true" hidden="true" />
             <Field id="device" type="menu">
                 <Label>Device:</Label>
