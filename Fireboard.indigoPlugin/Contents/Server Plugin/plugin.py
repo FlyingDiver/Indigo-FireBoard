@@ -27,21 +27,21 @@ class Plugin(indigo.PluginBase):
         self.indigo_log_handler.setLevel(self.logLevel)
         self.logger.debug(f"logLevel = {self.logLevel}")
 
+        self.fb_account = None
         self.fb_devices = {}  # Indigo device IDs, keyed by address (hardware_id)
         self.fb_channels = {}  # Indigo device IDs, keyed by uuid-channel string
         self.knownDevices = {}
-
-        self.fb_account = FireBoard(username=pluginPrefs['FireBoardLogin'], password=pluginPrefs['FireBoardPassword'])
-        for device in self.fb_account.get_devices():
-            self.knownDevices[device['hardware_id']] = device
-        self.logger.threaddebug(f"knownDevices = {self.knownDevices}")
-
-        self.updateFrequency = float(self.pluginPrefs.get('updateFrequency', "1")) * 60.0
+        self.pluginPrefs = pluginPrefs
+        self.updateFrequency = float(pluginPrefs.get('updateFrequency', "1")) * 60.0
         self.logger.debug(f"updateFrequency = {self.updateFrequency}")
         self.next_update = time.time()
 
     def startup(self):
         self.logger.info("Starting FireBoard")
+        self.fb_account = FireBoard(username=self.pluginPrefs['FireBoardLogin'], password=self.pluginPrefs['FireBoardPassword'])
+        for device in self.fb_account.get_devices():
+            self.knownDevices[device['hardware_id']] = device
+        self.logger.threaddebug(f"knownDevices = {self.knownDevices}")
 
     def shutdown(self):
         self.logger.info("Shutting down FireBoard")
