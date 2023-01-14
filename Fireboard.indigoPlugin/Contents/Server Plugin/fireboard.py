@@ -52,6 +52,9 @@ class FireBoard(object):
         try:
             resp = requests.get(url, headers=self.auth_headers)
             resp.raise_for_status()
+        except TimeoutError as err:
+            self.logger.warning(f"fbGetDevices timeout error, request url: {url}, Error: {err}")
+            return None
         except (Exception,):
             raise
         return resp.json()
@@ -61,6 +64,9 @@ class FireBoard(object):
         try:
             resp = requests.get(url, headers=self.token_header)
             resp.raise_for_status()
+        except TimeoutError as err:
+            self.logger.warning(f"fbGetDevices timeout error, request url: {url}, Error: {err}")
+            return None
         except (Exception,):
             raise
         return resp.json()
@@ -70,6 +76,9 @@ class FireBoard(object):
         try:
             resp = requests.get(url, headers=self.token_header)
             resp.raise_for_status()
+        except TimeoutError as err:
+            self.logger.warning(f"fbGetDevices timeout error, request url: {url}, Error: {err}")
+            return None
         except (Exception,):
             raise
         return resp.json()
@@ -79,6 +88,9 @@ class FireBoard(object):
         try:
             resp = requests.get(url, headers=self.token_header)
             resp.raise_for_status()
+        except TimeoutError as err:
+            self.logger.warning(f"fbGetDevices timeout error, request url: {url}, Error: {err}")
+            return None
         except (Exception,):
             raise
         return resp.json()
@@ -88,6 +100,9 @@ class FireBoard(object):
         try:
             resp = requests.get(url, headers=self.auth_headers)
             resp.raise_for_status()
+        except TimeoutError as err:
+            self.logger.warning(f"fbGetDevices timeout error, request url: {url}, Error: {err}")
+            return None
         except (Exception,):
             raise
         return resp.json()
@@ -97,6 +112,9 @@ class FireBoard(object):
         try:
             resp = requests.get(url, headers=self.auth_headers)
             resp.raise_for_status()
+        except TimeoutError as err:
+            self.logger.warning(f"fbGetDevices timeout error, request url: {url}, Error: {err}")
+            return None
         except (Exception,):
             raise
         return resp.json()
@@ -106,6 +124,9 @@ class FireBoard(object):
         try:
             resp = requests.get(url, headers=self.auth_headers)
             resp.raise_for_status()
+        except TimeoutError as err:
+            self.logger.warning(f"fbGetDevices timeout error, request url: {url}, Error: {err}")
+            return None
         except (Exception,):
             raise
         return resp.json()
